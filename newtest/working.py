@@ -619,16 +619,13 @@ def resc_combined_graph(jf):
     x = jf["Conductor Type"] + ", " + jf["Conductor Length (m)"].astype(str)
     y = jf["Corrected Continuity Resistance (Ω)"]
     colors = ["#d9534f", "#5bc0de", "#5cb85c", "#428bca"]
-    sorted_indices = np.argsort(y)  # Sort the indices based on y values
-    x_sorted = [x[i] for i in sorted_indices]
-    y_sorted = [y[i] for i in sorted_indices]
-    bars = plt.bar(x_sorted, y_sorted, color=colors)
+    bars = plt.bar(x, y, color=colors)
     plt.xlabel("Conductor Type and Conductor Length (m) ")
     plt.ylabel("Corrected Continuity Resistance (Ω)")
     plt.title(
         "Conductor Type and Conductor Length (m) (V) VS Corrected Continuity Resistance (Ω) "
     )
-    for bar, value in zip(bars, y_sorted):
+    for bar, value in zip(bars, y):
         height = bar.get_height()
         plt.text(
             bar.get_x() + bar.get_width() / 2,
