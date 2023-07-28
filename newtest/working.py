@@ -403,41 +403,51 @@ irdf = pd.concat([table_df, irdf], axis=1)
 irdf = irdf.dropna()
 print(irdf)
 
-
 def insulation_combined_graph(mf):
-    mf = pd.read_csv("Insulate.csv")
+    plt.figure(figsize=(16, 8))
 
     # Bar graph
+    plt.subplot(121)
     x = mf["Location"]
-    y = mf["Nominal Circuit Voltage"]
-
-    fig = plt.figure(figsize=(12, 6))  # Adjust the figsize as desired
-    ax1 = fig.add_subplot(121)
-    colors = ["#d9534f", "#5bc0de", "#5cb85c", "#428bca"]  # Add more colors if needed
-    ax1.bar(x, y, color=colors)
-    ax1.set_xlabel("Location")
-    ax1.set_ylabel("Nominal Circuit Voltage")
-    ax1.set_title("Nominal Circuit Voltage by Location")
+    y = mf["Insulation Resistance (MO)"]
+    colors = ["#b967ff", "#e0a899", "#fffb96", "#428bca"]  # Add more colors if needed
+    sorted_indices = np.argsort(y)  # Sort the indices based on y values
+    x_sorted = [x[i] for i in sorted_indices]
+    y_sorted = [y[i] for i in sorted_indices]
+    bars = plt.bar(x_sorted, y_sorted, color=colors)
+    plt.xlabel("Location")
+    plt.ylabel("Insulation Resistance (MO)")
+    plt.title("Location by Insulation Resistance (MO)")
+    plt.yscale("log")
+    for bar, value in zip(bars, y_sorted):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
 
     # Pie chart
-    earthing_system_counts = mf["Earthing System"].value_counts()
-    ax2 = fig.add_subplot(122)
-    colors = ["#5ac85a", "#dc0000"]
-    ax2.pie(
-        earthing_system_counts,
-        labels=earthing_system_counts.index,
-        autopct="%1.1f%%",
-        colors=colors,
-    )
-    ax2.set_title("Earthing System Distribution")
-    ax2.axis("equal")
+    plt.subplot(122)
+    # mf["Result"] = insulation_rang(mf.shape[0])
+    mf_counts = mf["Result"].value_counts()
+    labels = mf_counts.index.tolist()
+    values = mf_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.title("Test Results")
+    plt.axis("equal")
 
-    graph_combined2 = io.BytesIO()
-    plt.savefig(graph_combined2)
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
     plt.close()
 
-    return graph_combined2
-
+    return graph_combined
 
 # ------------------------------------Floor wall resistance------------------------------
 fwrdf = pd.DataFrame()  # FWR
@@ -483,6 +493,51 @@ fwrdf["Result"] = fwrdf.apply(
 fwrdf = pd.concat([table_df, fwrdf], axis=1)
 fwrdf = fwrdf.dropna()
 print(fwrdf)
+
+def flooresistance_combined_graph(df):
+    plt.figure(figsize=(16, 8))
+
+    # bar graph
+    plt.subplot(121)  # Sort the DataFrame by "Location" in ascending order
+    x = df["Location"]
+    y = df["Effective Resistance"]
+    colors = ["#b967ff", "#e0a899", "#fffb96", "#428bca"]  # Add more colors if needed
+    sorted_indices = np.argsort(y)  # Sort the indices based on y values
+    x_sorted = [x[i] for i in sorted_indices]
+    y_sorted = [y[i] for i in sorted_indices]
+    bars = plt.bar(x_sorted, y_sorted, color=colors)
+    plt.xlabel("Location")
+    plt.ylabel("Effective Insulation Resistance (kΩ)")
+    plt.title("Location VS Effective Floor Resistance Bar Graph")
+    for bar, value in zip(bars, y_sorted):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    df_counts = df["Result"].value_counts()
+    labels = df_counts.index.tolist()
+    values = df_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.title("Test Results")
+    plt.axis("equal")
+    # Save the combined graph as bytes
+    graph_combined1 = io.BytesIO()
+    plt.savefig(graph_combined1)
+    plt.close()
+
+    return graph_combined1
+
 
 # -----------------------------------------------------Resistance conductor----------------------------
 rcdf = pd.DataFrame()  # RC
@@ -555,6 +610,51 @@ rcdf["Result"] = rcdf.apply(
 rcdf = pd.concat([table_df, rcdf], axis=1)
 rcdf = rcdf.dropna()
 print(rcdf)
+
+def resc_combined_graph(jf):
+    plt.figure(figsize=(16, 8))
+
+    # Bar graph
+    plt.subplot(121)
+    x = jf["Conductor Type"] + ", " + jf["Conductor Length (m)"].astype(str)
+    y = jf["Corrected Continuity Resistance (Ω)"]
+    colors = ["#d9534f", "#5bc0de", "#5cb85c", "#428bca"]
+    sorted_indices = np.argsort(y)  # Sort the indices based on y values
+    x_sorted = [x[i] for i in sorted_indices]
+    y_sorted = [y[i] for i in sorted_indices]
+    bars = plt.bar(x_sorted, y_sorted, color=colors)
+    plt.xlabel("Conductor Type and Conductor Length (m) ")
+    plt.ylabel("Corrected Continuity Resistance (Ω)")
+    plt.title(
+        "Conductor Type and Conductor Length (m) (V) VS Corrected Continuity Resistance (Ω) "
+    )
+    for bar, value in zip(bars, y_sorted):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    jf_counts = jf["Result"].value_counts()
+    labels = jf_counts.index.tolist()
+    values = jf_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.axis("equal")
+    plt.title("Test Results")
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+
+    return graph_combined
 
 
 # ------------------------------------Phase Sequence------------------------------
@@ -1041,12 +1141,19 @@ def main():
     doc = SU_table(irdf, test1_column_widths, doc)
     graph_combined = insulation_combined_graph(irdf)
     doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+    
     # FWR
     doc.add_heading("Floor wall Resistance test", 0)
     doc = PF_table(fwrdf, doc)
+    graph_combined = flooresistance_combined_graph(fwrdf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+    
     # RC
     doc.add_heading("Resistance conductor test", 0)
     doc = PF_table(rcdf, doc)
+    graph_combined = resc_combined_graph(rcdf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+    
     # PHS
     doc.add_heading("Phase Sequence test", 0)
     doc = PF_table(phs_df, doc)  # clockwise-anti
