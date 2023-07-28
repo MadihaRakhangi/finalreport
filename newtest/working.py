@@ -15,6 +15,7 @@ from docx.oxml.ns import nsdecls
 from docx.oxml import parse_xml
 import csv
 import io
+from datetime import datetime
 
 F = pd.read_csv("main.csv")
 
@@ -1133,6 +1134,55 @@ print(patdf)
 # -----------------------------------------------------MAIN----------------------------
 def main():
     doc = Document()
+    normal_style = doc.styles['Normal']
+    normal_style.font.name = 'Calibri'
+    normal_style.font.size = Pt(12)
+    for section in doc.sections:
+        section.left_margin = Inches(1)
+    title = doc.add_heading("TESTING REPORT", 0)
+    run = title.runs[0]
+    run.font.color.rgb = RGBColor(0x6f, 0xa3, 0x15)
+
+    section = doc.sections[0]
+    header = section.header
+
+
+    htable = header.add_table(1, 2, width=Inches(6))                                                  # Create a table with two cells for the pictures
+    htable.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER                                                   # Configure the table properties
+    htable.autofit = False
+
+   
+    cell1 = htable.cell(0, 0)                                                                        # Get the first cell in the table
+    cell1.width = Inches(4)                                                                        # Adjust the width of the first cell
+
+    left_header_image_path = "efficienergy-logo.jpg"                                                # Add the first picture to the first cell
+    cell1_paragraph = cell1.paragraphs[0]
+    cell1_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
+    cell1_run = cell1_paragraph.add_run()
+    cell1_run.add_picture(left_header_image_path, width=Inches(1.5))
+
+    # Get the second cell in the table
+    cell2 = htable.cell(0, 1)
+    cell2.width = Inches(3)                                                                     # Adjust the width of the second cell
+
+    # Add the second picture to the second cell
+    right_header_image_path = "secqr logo.png"                                              # Replace with the actual image file path
+    cell2_paragraph = cell2.paragraphs[0]
+    cell2_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
+    cell2_run = cell2_paragraph.add_run()
+    cell2_run.add_picture(right_header_image_path, width=Inches(1.3))
+
+    # Add the footer with text and current date-time
+    footer = section.footer
+    footer_paragraph = footer.paragraphs[0]
+    current_time = datetime.now().strftime('%d-%m-%Y  %H:%M:%S')  # Format the current time as desired
+    footer_paragraph.text = (
+    f"{current_time}\n"
+    "This Report is the Intellectual Property of M/s Efficienergi Consulting Pvt. Ltd. Plagiarism in Part or Full will be considered as theft of Intellectual property. The Information in this Report is to be treated as Confidential."
+    )
+    for run in footer_paragraph.runs:
+        run.font.name = "Calibri"
+        run.font.size = Pt(7)
     # IR
     doc.add_heading("Insulation Resistance test", 0)
     doc = SU_table(irdf, test1_column_widths, doc)
