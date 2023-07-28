@@ -352,22 +352,22 @@ irdf["Number of Runs"] = F["no_runs"]
 irdf["Insulation Type"] = F["ins_type"]
 irdf["Leakage Capacitance (nF)"] = F["leak_cap_nf"]
 irdf["Insulation Resistance (MO)"] = F["ins_res_mohm"]
-test1_column_widths = [
-    0.57,
-    0.6,
-    0.6,
-    0.56,
-    0.38,
-    0.4,
-    0.5,
-    0.48,
-    0.5,
+irdf_column_widths = [
+    0.52,
     0.43,
-    0.4,
-    0.4,
-    0.4,
-    0.4,
-    0.73,
+    0.6,
+    0.37,
+    0.59,
+    0.59,
+    0.69,
+    0.49,
+    0.59,
+    0.59,
+    0.47,
+    0.51,
+    0.59,
+    0.59,
+    0.6,
 ]
 
 
@@ -403,6 +403,7 @@ irdf["Result"] = irdf.apply(
 irdf = pd.concat([table_df, irdf], axis=1)
 irdf = irdf.dropna()
 print(irdf)
+
 
 def insulation_combined_graph(mf):
     plt.figure(figsize=(16, 8))
@@ -450,6 +451,7 @@ def insulation_combined_graph(mf):
 
     return graph_combined
 
+
 # ------------------------------------Floor wall resistance------------------------------
 fwrdf = pd.DataFrame()  # FWR
 fwrdf["Distance from previous test location (m)"] = F["distance_prev_loc"]
@@ -457,6 +459,7 @@ fwrdf["Nominal Voltage to Earth of System (V)"] = F["nom_vlt_e_v"]
 fwrdf["Applied Test Voltage (V)"] = F["app_test_vlt"]
 fwrdf["Measured Output Current (mA)"] = F["meas_out_curr_ma"]
 fwrdf["Resistance (kO)"] = F["res_kohm"]
+# fwrdf_column_widths = [1.44, 1.5, 1.75, 2.75, 3, 2.25, 2.25, 2.5, 2, 1.5,]
 
 fwrdf["Effective Resistance"] = (
     fwrdf["Applied Test Voltage (V)"] / fwrdf["Measured Output Current (mA)"]
@@ -494,6 +497,7 @@ fwrdf["Result"] = fwrdf.apply(
 fwrdf = pd.concat([table_df, fwrdf], axis=1)
 fwrdf = fwrdf.dropna()
 print(fwrdf)
+
 
 def flooresistance_combined_graph(df):
     plt.figure(figsize=(16, 8))
@@ -612,6 +616,7 @@ rcdf = pd.concat([table_df, rcdf], axis=1)
 rcdf = rcdf.dropna()
 print(rcdf)
 
+
 def resc_combined_graph(jf):
     plt.figure(figsize=(16, 8))
 
@@ -680,6 +685,49 @@ phs.loc[:, "Result"] = phs["Phase Sequence"].apply(phase_result)
 phs_df = pd.concat([table_df, phs], axis=1)
 phs_df = phs_df.dropna()
 print(phs_df)
+
+
+def phase_combined_graph(pf):
+    plt.figure(figsize=(16, 8))
+    # Bar graph
+    plt.subplot(121)
+    x = pf["Phase Sequence"]
+    y = (
+        pf["Phase Sequence"].value_counts().values
+    )  # Use value_counts().values to get the count values as an array
+    colors = ["#FFFF00", "#0000FF"]  # Add more colors if needed
+    bars = plt.bar(x, y, color=colors)
+    plt.ylabel("Count of Phase Sequence")
+    plt.xlabel("Phase sequence")
+    plt.title(" Phase Sequence Test")
+    plt.yticks(np.arange(0, max(y) + 1, 1))
+    for bar, value in zip(bars, y):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    pf_counts = pf["Result"].value_counts()
+    labels = pf_counts.index.tolist()
+    values = pf_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.axis("equal")
+    plt.title("Test Results")
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+
+    return graph_combined
 
 
 # -----------------------------------------------------Voltage drop----------------------------
@@ -796,6 +844,60 @@ vddf["Result"] = vddf.apply(
 vddf = pd.concat([table_df, vddf], axis=1)
 vddf = vddf.dropna()
 print(vddf)
+
+
+def voltage_combined_graph(vf):
+    plt.figure(figsize=(16, 8))
+
+    # Bar graph
+    plt.subplot(121)
+    x = vf["Conductor Type"] + ", " + vf["Cable Length (m)"].astype(str)
+    y = vf["Voltage Drop %"]
+    colors = ["#d9534f", "#5bc0de", "#5cb85c", "#428bca"]
+
+    # Sort the indices based on y values
+    sorted_indices = np.argsort(y)
+
+    # Retrieve values from DataFrame using .get() method
+    x_sorted = [x.get(i, "N/A") for i in sorted_indices]
+    y_sorted = [y.get(i, 0) for i in sorted_indices]
+
+    bars = plt.bar(x_sorted, y_sorted, color=colors)
+    plt.ylabel("Voltage Drop %")
+    plt.xlabel("Conductor type and Cable Length (m)")
+    plt.title("Conductor type and Cable Length (m) VS Voltage Drop %")
+
+    # Add values inside each bar vertically
+    for bar, value in zip(bars, y_sorted):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    vf_counts = vf["Result"].value_counts()
+    labels = vf_counts.index.tolist()
+    values = vf_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.axis("equal")
+    plt.title("Test Results")
+    # Save the combined graph as bytes
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+
+    return graph_combined
+
+
 # -----------------------------------------------------Polarity----------------------------
 ptdf = pd.DataFrame()  # PT
 ptdf["Device Type"] = F["pt_device_type"]
@@ -817,6 +919,52 @@ ptdf["Result"] = ptdf["Line to Neutral Voltage (V)"].apply(polarity_result)
 ptdf = pd.concat([table_df, ptdf], axis=1)
 ptdf = ptdf.dropna()
 print(ptdf)
+
+
+def polarity_combined_graph(af):
+    plt.figure(figsize=(16, 8))
+
+    # Bar graph
+    plt.subplot(121)  # Prepare the data for the graph
+    result_counts = af["Result"].value_counts().sort_index()
+    x = result_counts.index
+    y = result_counts.values
+    colors = ["#b967ff", "#e0a899", "#fffb96", "#428bca"]
+    bars = plt.bar(x, y, color=colors)
+    plt.xlabel("Result")
+    plt.ylabel("Count")
+    plt.title("Result Counts")  # Setting y-axis ticks to integers
+    plt.yticks(np.arange(y.max() + 1))
+    for bar, value in zip(bars, y):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    af_counts = af["Result"].value_counts()
+    labels = af_counts.index.tolist()
+    values = af_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.axis("equal")
+    plt.title("Polarity Results")
+    # Save the combined graph as bytes
+    graph_combined4 = io.BytesIO()
+    plt.savefig(graph_combined4)
+    plt.close()
+
+    return graph_combined4
+
+
 # -----------------------------------------------------Residual current device----------------------------
 rdcdf = pd.DataFrame()  # RD
 rdcdf["type_supply of Voltage Waveform"] = F["type_supply"]
@@ -897,6 +1045,50 @@ rdcdf["Result"] = rdcdf.apply(
 rdcdf = pd.concat([table_df, rdcdf], axis=1)
 rdcdf = rdcdf.dropna()
 print(rdcdf)
+
+
+def residual_combined_graph(rf):
+    plt.figure(figsize=(16, 8))
+
+    # Bar graph
+    plt.subplot(121)
+    tct = rf["Trip curve type_supply"].value_counts()
+    x_values = tct.index
+    y_values = tct.values
+    colors = ["#b967ff", "#e0a899"]  # Add more colors if needed
+    bars = plt.bar(x_values, y_values, color=colors)
+    plt.xlabel("Trip curve type")
+    plt.ylabel("Count")
+    plt.title("Residual Test Results")
+    for bar, value in zip(bars, y_values):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    result_counts = rf["Result"].value_counts()
+    labels = result_counts.index
+    values = result_counts.values
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", shadow=False, startangle=90, colors=colors)
+    plt.title("Residual Test Results")
+    plt.axis("equal")  # Equal aspect ratio ensures that the pie is drawn as a circle
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+
+    return graph_combined
+
+
 # -----------------------------------------------------Earth pit----------------------------
 epedf = pd.DataFrame()  # EPE
 epedf["No of Parallel Electrodes"] = F["no_eecp"]
@@ -964,31 +1156,70 @@ epedf = pd.concat([table_df, epedf], axis=1)
 epedf = epedf.dropna()
 print(epedf)
 
+
+def Earth_combined_graph(ef):
+    plt.figure(figsize=(16, 8))
+
+    # Bar graph
+    plt.subplot(121)
+    x = ef["Location"]
+    y = ef["Measured Earth Resistance - Individual (O)"]
+    colors = ["#b967ff", "#e0a899", "#fffb96", "#428bca"]  # Add more colors if needed
+    sorted_indices = np.argsort(y)  # Sort the indices based on y values
+    x_sorted = [x[i] for i in sorted_indices]
+    y_sorted = [y[i] for i in sorted_indices]
+    bars = plt.bar(x_sorted, y_sorted, color=colors)
+    plt.xlabel("Location")
+    plt.ylabel("Measured Earth Resistance - Individual")
+    plt.title("Location VS Measured Earth Resistance - Individual graph")
+    for bar, value in zip(bars, y_sorted):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value:.2f}",  # Show only the value of 'y' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # pie diagram
+    plt.subplot(122)
+    result_counts = ef["Result"].value_counts()
+    labels = result_counts.index
+    values = result_counts.values
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", shadow=False, startangle=90, colors=colors)
+    plt.title("Earth Pit Test Results")
+    plt.axis("equal")  # Equal aspect ratio ensures that the pie is drawn as a circle
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+    return graph_combined
+
+
 # -----------------------------------------------------Three phase symmetry----------------------------
 tpsdf = pd.DataFrame()  # TPS
 tpsdf["Rated Line Voltage (V)"] = F["rated_line_vlt"]
-tpsdf["Voltage-L1L2 (V)"] = F["tps_l1_l2_v"]
-tpsdf["Voltage-L2L3 (V)"] = F["tps_l2_l3_v"]
-tpsdf["Voltage-L3L1 (V)"] = F["tps_l3_l1_v"]
-tpsdf["Voltage-L1N (V)"] = F["tps_l1_n_v"]
-tpsdf["Voltage-L2N (V)"] = F["tps_l2_n_v"]
-tpsdf["Voltage-L3N (V)"] = F["tps_l3_n_v"]
+# tpsdf["Voltage-L1L2 (V)"] = F["tps_l1_l2_v"]
+# tpsdf["Voltage-L2L3 (V)"] = F["tps_l2_l3_v"]
+# tpsdf["Voltage-L3L1 (V)"] = F["tps_l3_l1_v"]
+# tpsdf["Voltage-L1N (V)"] = F["tps_l1_n_v"]
+# tpsdf["Voltage-L2N (V)"] = F["tps_l2_n_v"]
+# tpsdf["Voltage-L3N (V)"] = F["tps_l3_n_v"]
 tpsdf["Average Line Voltage (V)"] = F["avg_line_vlt"]
 tpsdf["Average Phase Voltage (V)"] = F["avg_ph_vlt"]
 tpsdf["Voltage Unbalance %"] = F["vlt_unb"]
-# tpsdf["Voltage Result"] = F["tps_vlt_result"]
 tpsdf["Rated Phase Current (A)"] = F["rated_ph_curr"]
-tpsdf["Current-L1 (A)"] = F["tps_curr_l1"]
-tpsdf["Current-L2 (A)"] = F["tps_curr_l2"]
-tpsdf["Current-L3 (A)"] = F["tps_curr_l3"]
+# tpsdf["Current-L1 (A)"] = F["tps_curr_l1"]
+# tpsdf["Current-L2 (A)"] = F["tps_curr_l2"]
+# tpsdf["Current-L3 (A)"] = F["tps_curr_l3"]
 tpsdf["Average Phase Current (A)"] = F["avg_ph_curr"]
 tpsdf["Current Unbalance %"] = F["curr_unb"]
-# tpsdf["Current Result"] = F["tps_curr_result"]
 tpsdf["Voltage-NE (V)"] = F["vlt_nev"]
-# tpsdf["NEV Result"] = F["tps_nev_result"]
 tpsdf["Zero Sum Current (mA)"] = F["zero_sum_curr"]
-# tpsdf["ZeroSum Result"] = F["tps_zs_result"]
-# tpsdf["Remarks"] = F["tps_result_remarks"]
 
 
 def threephase_result(tpsdf, tf2):
@@ -1049,6 +1280,109 @@ tpsdf = pd.concat([table_df, tpsdf], axis=1)
 tpsdf = tpsdf.dropna()
 print(tpsdf)
 
+# def threephase_combined_graph(tf):
+#     # Create a 2x2 grid of subplots
+#     fig, axes = plt.subplots(nrows=2, ncols=2, figsize=(16, 8))
+
+#     # First subplot - Bar graph for Voltage Unbalance %
+#     ax1 = axes[0, 0]
+#     x = tf["Location "]
+#     y = tf["Voltage Unbalance %"]
+#     colors = ["#5cb85c", "#428bca"]
+#     bars = ax1.bar(x, y, color=colors)
+#     ax1.set_xlabel("Location")
+#     ax1.set_ylabel("Voltage Unbalance %")
+#     ax1.set_title("Location VS Voltage Unbalance %")
+#     for bar, value in zip(bars, y):
+#         height = bar.get_height()
+#         ax1.text(
+#             bar.get_x() + bar.get_width() / 2,
+#             height / 2,
+#             f"{value:.2f}%",
+#             ha="center",
+#             va="center",
+#             color="black",
+#             fontsize=8,
+#             rotation=0,
+#         )
+
+#     # Second subplot - Pie chart for Current Unbalance %
+#     ax2 = axes[0, 1]
+#     x = tf["Location "]
+#     y = tf["Current Unbalance %"]
+#     colors = ["#d9534f", "#5bc0de"]
+#     bars = ax2.bar(x, y, color=colors)
+#     ax2.set_xlabel("Location")
+#     ax2.set_ylabel("Current Unbalance %")
+#     ax2.set_title("Location VS Current Unbalance %")
+#     for bar, value in zip(bars, y):
+#         height = bar.get_height()
+#         ax2.text(
+#             bar.get_x() + bar.get_width() / 2,
+#             height / 2,
+#             f"{value:.2f}%",
+#             ha="center",
+#             va="center",
+#             color="black",
+#             fontsize=8,
+#             rotation=0,
+#         )
+
+#     # Third subplot - Bar graph for Voltage-NE (V)
+#     ax3 = axes[1, 0]
+#     x = tf["Location "]
+#     y = tf["Voltage-NE (V)"]
+#     colors = ["#5bc0de", "#5cb85c"]
+#     bars = ax3.bar(x, y, color=colors)
+#     ax3.set_xlabel("Location")
+#     ax3.set_ylabel("Voltage-NE (V)")
+#     ax3.set_title("Location VS Voltage-NE (V)")
+#     for bar, value in zip(bars, y):
+#         height = bar.get_height()
+#         ax3.text(
+#             bar.get_x() + bar.get_width() / 2,
+#             height / 2,
+#             f"{value:.2f}%",
+#             ha="center",
+#             va="center",
+#             color="black",
+#             fontsize=8,
+#             rotation=0,
+#         )
+
+#     # Fourth subplot - Bar graph for loading
+#     ax4 = axes[1, 1]
+#     x = tf["Location "]
+#     tf["loading"] = tf["Average Phase Current (A)"] / tf["Rated Phase Current (A)"].round(2)
+#     y = tf["loading"]
+#     colors = ["#5bc0de", "#5cb85c"]
+#     bars = ax4.bar(x, y, color=colors)
+#     ax4.set_ylabel("loading")
+#     ax4.set_xlabel("Location")
+#     ax4.set_title("Location VS loading")
+#     for bar, value in zip(bars, y):
+#         height = bar.get_height()
+#         ax4.text(
+#             bar.get_x() + bar.get_width() / 2,
+#             height / 2,
+#             f"{value:.2f}%",
+#             ha="center",
+#             va="center",
+#             color="black",
+#             fontsize=8,
+#             rotation=0,
+#         )
+
+#     # Adjust spacing between subplots
+#     plt.tight_layout()
+
+#     # Save the combined plot to a BytesIO object
+#     graph_combined = io.BytesIO()
+#     plt.savefig(graph_combined)
+#     plt.close()
+
+#     return graph_combined
+
 # -----------------------------------------------------Function and operations----------------------------
 fodf = pd.DataFrame()  # FUNC OPS
 fodf["Device type"] = F["fo_device_type"]
@@ -1070,12 +1404,54 @@ def func_ops_result(func_check, inter_check):
 
 
 # Apply the func_ops_result function to create the new 'result' column
-fodf["result"] = fodf.apply(
+fodf["Result"] = fodf.apply(
     lambda row: func_ops_result(row["Functional Check"], row["Interlock check"]), axis=1
 )
 fodf = pd.concat([table_df, fodf], axis=1)
 fodf = fodf.dropna()
 print(fodf)
+
+
+def func_ops_combined_graph(of):
+    plt.figure(figsize=(16, 8))
+
+    # bar graph
+    plt.subplot(121)
+    tct = of["Functional Check"].value_counts()
+    tct1 = of["Interlock check"].value_counts()
+
+    X = tct.index
+    Ygirls = tct.values
+    Zboys = tct1.values
+
+    X_axis = np.arange(len(X))
+
+    plt.bar(X_axis - 0.2, Ygirls, 0.4, label="ok")
+    plt.bar(X_axis + 0.2, Zboys, 0.4, label="notok")
+
+    plt.xticks(X_axis, X)
+    plt.xlabel("Groups")
+    plt.ylabel("Number of Students")
+    plt.title("Number of Students in each group")
+    plt.legend()
+
+    # Pie chart
+    plt.subplot(122)
+    of_counts = of["Result"].value_counts()
+    labels = of_counts.index.tolist()
+    values = of_counts.values.tolist()
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", startangle=90, colors=colors)
+    plt.axis("equal")
+    plt.title("Test Results")
+    # Save the combined graph as bytes
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+
+    return graph_combined
+
+
 # -----------------------------------------------------ELI circuit breaker----------------------------
 
 
@@ -1095,67 +1471,85 @@ patdf["Insulation Resistance (MO)"] = F["pat_ir"]
 patdf["Polarity Test"] = F["pat_pt"]
 patdf["Leakage (mA)"] = F["pat_leak"]
 patdf["Functional Check"] = F["pat_func_check"]
-
-print(patdf)
-
-# def pat_combined_graph(patdf):
-#     plt.figure(figsize=(16, 8))
-
-#     # Bar graph
-#     plt.subplot(121)
-#     y = patdf["Earth Continuity (?)"]
-#     x = patdf["Location"]
-#     colors = ["#d9534f", "#5bc0de", "#aa6f73", "#428bca"]
-#     plt.bar(x, y, color=colors)
-#     plt.ylabel("Earth Continuity (?)")
-#     plt.xlabel("Location")
-#     plt.title("Location Location VS  Earth Continuity (?) ")
-
-#     # Pie chart
-#     plt.subplot(122)
-#     result_counts = patdf["Overall Result"].value_counts()
-#     labels = result_counts.index
-#     values = result_counts.values
-#     colors = ["#5ac85a", "#dc0000"]
-#     plt.pie(values, labels=labels, autopct="%1.1f%%", shadow=False, startangle=90, colors=colors)
-#     plt.title("Residual Test Results")
-#     plt.axis("equal")  # Equal aspect ratio ensures that the pie is drawn as a circle
-#     graph_combined = io.BytesIO()
-#     plt.savefig(graph_combined)
-#     plt.close()
-
-#     return graph_combined
+patdf["Overall Result"] = F["result_pat"]
 
 patdf = pd.concat([table_df, patdf], axis=1)
 patdf = patdf.dropna()
 print(patdf)
 
 
+def pat_combined_graph(bf):
+    plt.figure(figsize=(16, 8))
+
+    # Bar graph
+    plt.subplot(121)
+    combined_data = pd.concat(
+        [bf["Functional Check"], bf["Visual Inspection"]], keys=["col1", "col2"]
+    )
+    tct = combined_data.value_counts()
+    x_values = tct.index
+    y_values = tct.values
+    colors = ["#b967ff", "#e0a899"]
+    bars = plt.bar(x_values, y_values, color=colors)
+    plt.xlabel("functional and inspection check")
+    plt.ylabel("Count")
+    plt.title("Residual Test Results")
+
+    # Add text labels inside each bar
+    for bar, value in zip(bars, y_values):
+        height = bar.get_height()
+        plt.text(
+            bar.get_x() + bar.get_width() / 2,
+            height / 2,
+            f"{value}",  # Show the count of 'col1' inside the bar
+            ha="center",
+            va="center",
+            color="black",
+            fontsize=8,
+            rotation=0,
+        )
+
+    # Pie chart
+    plt.subplot(122)
+    result_counts = bf["Overall Result"].value_counts()
+    labels = result_counts.index
+    values = result_counts.values
+    colors = ["#00FF00", "#FF0000"]
+    plt.pie(values, labels=labels, autopct="%1.1f%%", shadow=False, startangle=90, colors=colors)
+    plt.title("Residual Test Results")
+    plt.axis("equal")  # Equal aspect ratio ensures that the pie is drawn as a circle
+    graph_combined = io.BytesIO()
+    plt.savefig(graph_combined)
+    plt.close()
+
+    return graph_combined
+
+
 # -----------------------------------------------------MAIN----------------------------
 def main():
     doc = Document()
-    normal_style = doc.styles['Normal']
-    normal_style.font.name = 'Calibri'
+    normal_style = doc.styles["Normal"]
+    normal_style.font.name = "Calibri"
     normal_style.font.size = Pt(12)
     for section in doc.sections:
         section.left_margin = Inches(1)
     title = doc.add_heading("TESTING REPORT", 0)
     run = title.runs[0]
-    run.font.color.rgb = RGBColor(0x6f, 0xa3, 0x15)
+    run.font.color.rgb = RGBColor(0x6F, 0xA3, 0x15)
 
     section = doc.sections[0]
     header = section.header
 
-
-    htable = header.add_table(1, 2, width=Inches(6))                                                  # Create a table with two cells for the pictures
-    htable.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER                                                   # Configure the table properties
+    htable = header.add_table(
+        1, 2, width=Inches(6)
+    )  # Create a table with two cells for the pictures
+    htable.alignment = WD_PARAGRAPH_ALIGNMENT.CENTER  # Configure the table properties
     htable.autofit = False
 
-   
-    cell1 = htable.cell(0, 0)                                                                        # Get the first cell in the table
-    cell1.width = Inches(4)                                                                        # Adjust the width of the first cell
+    cell1 = htable.cell(0, 0)  # Get the first cell in the table
+    cell1.width = Inches(4)  # Adjust the width of the first cell
 
-    left_header_image_path = "efficienergy-logo.jpg"                                                # Add the first picture to the first cell
+    left_header_image_path = "efficienergy-logo.jpg"  # Add the first picture to the first cell
     cell1_paragraph = cell1.paragraphs[0]
     cell1_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.LEFT
     cell1_run = cell1_paragraph.add_run()
@@ -1163,10 +1557,10 @@ def main():
 
     # Get the second cell in the table
     cell2 = htable.cell(0, 1)
-    cell2.width = Inches(3)                                                                     # Adjust the width of the second cell
+    cell2.width = Inches(3)  # Adjust the width of the second cell
 
     # Add the second picture to the second cell
-    right_header_image_path = "secqr logo.png"                                              # Replace with the actual image file path
+    right_header_image_path = "secqr logo.png"  # Replace with the actual image file path
     cell2_paragraph = cell2.paragraphs[0]
     cell2_paragraph.alignment = WD_PARAGRAPH_ALIGNMENT.RIGHT
     cell2_run = cell2_paragraph.add_run()
@@ -1175,58 +1569,81 @@ def main():
     # Add the footer with text and current date-time
     footer = section.footer
     footer_paragraph = footer.paragraphs[0]
-    current_time = datetime.now().strftime('%d-%m-%Y  %H:%M:%S')  # Format the current time as desired
+    current_time = datetime.now().strftime(
+        "%d-%m-%Y  %H:%M:%S"
+    )  # Format the current time as desired
     footer_paragraph.text = (
-    f"{current_time}\n"
-    "This Report is the Intellectual Property of M/s Efficienergi Consulting Pvt. Ltd. Plagiarism in Part or Full will be considered as theft of Intellectual property. The Information in this Report is to be treated as Confidential."
+        f"{current_time}\n"
+        "This Report is the Intellectual Property of M/s Efficienergi Consulting Pvt. Ltd. Plagiarism in Part or Full will be considered as theft of Intellectual property. The Information in this Report is to be treated as Confidential."
     )
     for run in footer_paragraph.runs:
         run.font.name = "Calibri"
         run.font.size = Pt(7)
     # IR
     doc.add_heading("Insulation Resistance test", 0)
-    doc = SU_table(irdf, test1_column_widths, doc)
+    doc = SU_table(irdf, irdf_column_widths, doc)
     graph_combined = insulation_combined_graph(irdf)
     doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
-    
+
     # FWR
     doc.add_heading("Floor wall Resistance test", 0)
     doc = PF_table(fwrdf, doc)
     graph_combined = flooresistance_combined_graph(fwrdf)
     doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
-    
+
     # RC
     doc.add_heading("Resistance conductor test", 0)
     doc = PF_table(rcdf, doc)
     graph_combined = resc_combined_graph(rcdf)
     doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
-    
+
     # PHS
     doc.add_heading("Phase Sequence test", 0)
     doc = PF_table(phs_df, doc)  # clockwise-anti
+    graph_combined = phase_combined_graph(phs_df)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # VD
     doc.add_heading("Voltage Drop test", 0)
     doc = PF_table(vddf, doc)
+    graph_combined = voltage_combined_graph(vddf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # PT
     doc.add_heading("Polarity test", 0)
     doc = OK_table(ptdf, doc)  # ok-reverse
+    graph_combined = polarity_combined_graph(ptdf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # RCD
     doc.add_heading("Residual current device test", 0)
     doc = PF_table(rdcdf, doc)
+    graph_combined = residual_combined_graph(rdcdf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # EP
     doc.add_heading("Earth Pit test", 0)
     doc = PF_table(epedf, doc)
+    graph_combined = Earth_combined_graph(epedf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # TPS
     doc.add_heading("Three Phase Symmetry test", 0)
     doc = PF_table(tpsdf, doc)
+    # graph_combined = threephase_combined_graph(tpsdf)
+    # doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # FO
     doc.add_heading("Function and operation test", 0)
     doc = PF_table(fodf, doc)
+    graph_combined = func_ops_combined_graph(fodf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+
     # PAT
     doc.add_heading("PAT test", 0)
     doc = PF_table(patdf, doc)
-    # graph_combined = pat_combined_graph(patdf)
-    # doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
+    graph_combined = pat_combined_graph(patdf)
+    doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
 
     doc.save("finaltest.docx")
 
