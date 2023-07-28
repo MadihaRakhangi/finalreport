@@ -1178,7 +1178,7 @@ def main():
     # graph_combined = pat_combined_graph(patdf)
     # doc.add_picture(graph_combined, width=Inches(8), height=Inches(4))
 
-    doc.save("newtest1.docx")
+    doc.save("finaltest.docx")
 
 
 main()
