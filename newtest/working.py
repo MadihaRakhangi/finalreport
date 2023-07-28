@@ -581,12 +581,14 @@ rcdf["Corrected Continuity Resistance (Ω)"] = (
 # Calculate Specific Conductor Resistance at 30°C
 alpha_values = rcdf["Conductor Type"].apply(alpha)
 rcdf["Specific Conductor Resistance (MΩ/m) at 30°C"] = rcdf[
-    "Corrected Continuity Resistance (Ω)"
-] / (1 + alpha_values * (rcdf["Conductor Temperature (°C)"] - 30))
+    "Corrected Continuity Resistance (Ω)"] / (1 + alpha_values * (rcdf["Conductor Temperature (°C)"] - 30))
+
 rcdf["Specific Conductor Resistance (MΩ/m) at 30°C"] /= 1000000
+
 rcdf["Specific Conductor Resistance (MΩ/m) at 30°C"] = rcdf[
     "Specific Conductor Resistance (MΩ/m) at 30°C"
 ].apply(lambda x: format(x, "E"))
+
 rcdf.to_csv("resistance_updated.csv", index=False)
 
 
