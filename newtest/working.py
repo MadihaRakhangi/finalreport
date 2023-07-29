@@ -1180,6 +1180,7 @@ def main():
     f"{current_time}\n"
     "This Report is the Intellectual Property of M/s Efficienergi Consulting Pvt. Ltd. Plagiarism in Part or Full will be considered as theft of Intellectual property. The Information in this Report is to be treated as Confidential."
     )
+    
     for run in footer_paragraph.runs:
         run.font.name = "Calibri"
         run.font.size = Pt(7)
